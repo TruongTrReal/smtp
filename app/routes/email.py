@@ -10,5 +10,8 @@ email_bp = Blueprint('email', __name__)
 @email_bp.route('/email')
 @login_required
 def index():
-    # user = current_user
-    return render_template('email.html')
+    return render_template('email.html', username=current_user.username, email=current_user.email)
+
+# @email_bp.route('/login_required')
+# def login_required_page():
+#     return render_template('login_required.html')

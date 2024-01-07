@@ -20,20 +20,6 @@ API_VERSION = 'v2'
 auth_bp = Blueprint('auth', __name__)
 oauth = OAuth()
 
-google = oauth.remote_app(
-    'google',
-    consumer_key='294737311113-vi4mnctcscovl0tgvg6eesgo16v56i8p.apps.googleusercontent.com',
-    consumer_secret='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',
-    request_token_params={
-        'scope': 'email',
-    },
-    base_url='https://www.googleapis.com/oauth2/v1/',
-    request_token_url=None,
-    access_token_method='POST',
-    access_token_url='https://accounts.google.com/o/oauth2/token',
-    authorize_url='https://accounts.google.com/o/oauth2/auth',
-)
-
 def credentials_to_dict(credentials):
   return {'token': credentials.token,
           'refresh_token': credentials.refresh_token,
@@ -69,8 +55,6 @@ def authorize():
 
 @auth_bp.route('/oauth2callback')
 def oauth2callback():
-    # Specify the state when creating the flow in the callback so that it can
-    # verified in the authorization server response.
     state = session.pop('state', None)
     
     if state is None:
@@ -93,10 +77,6 @@ def oauth2callback():
 
     return redirect(url_for('email.index'))
 
-
-@auth_bp.route('/login/google')
-def google_login():
-    return google.authorize(callback=url_for('auth.google_login', _external=True))
 
 
 @auth_bp.route('/login/google/authorized')
@@ -125,9 +105,9 @@ def google_authorized():
     flash('Google login successful! User registered.', 'success')
     return redirect(url_for('home.index'))
 
-@google.tokengetter
-def get_google_oauth_token():
-    return session.get('google_token')
+# @google.tokengetter
+# def get_google_oauth_token():
+#     return session.get('google_token')
 
 
 @auth_bp.route('/register', methods=['GET', 'POST'])
@@ -138,9 +118,8 @@ def register():
         username = request.form.get('username')
         email = request.form.get('email')
         password = request.form.get('password')
-
-        # Check if the email already exists in the database
         existing_user = mongo.db.users.find_one({'email': email})
+
         if existing_user:
             flash('Email already registered. Please log in or use a different email.', 'danger')
             return redirect(url_for('auth.register'))
@@ -148,15 +127,15 @@ def register():
 
         hashed_password = generate_password_hash(password, method='pbkdf2:sha256:600000')
 
-        # Create a new user instance without saving to the database
-        new_user = User(user_id=user_id, username=username, email=email, password=hashed_password)
-
-        # Log in the user immediately after registration
+        new_user = User(
+            user_id=user_id, 
+            username=username, 
+            email=email, 
+            password=hashed_password
+        )
+        
         login_user(new_user)
-
-        # Save user to MongoDB
         mongo.db.users.insert_one(new_user.__dict__)
-
         flash('Registration successful! You are now logged in.', 'success')
         return redirect(url_for('email.index'))
 
@@ -172,16 +151,17 @@ def login():
         user = mongo.db.users.find_one({'email': email})
 
         if user and check_password_hash(user['password'], password):
-            # Use the User class to create a User object for login
+
             user_obj = User(
-                user_id=user['_id'],
+                user_id=user['id'],
                 username=user['username'],
                 email=user['email'],
                 password=user['password']
             )
-            login_user(user_obj)  # Login the user
+
+            login_user(user_obj)
             flash('Login successful!', 'success')
-            return redirect(url_for('email.index'))  # Redirect to a protected route
+            return redirect(url_for('email.index'))
         else:
             flash('Login failed. Check your email and password.', 'danger')
 

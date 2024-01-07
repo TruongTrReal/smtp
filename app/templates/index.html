@@ -1,20 +1,48 @@
-<!-- index.html -->
+<!-- templates/index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Flask App</title>
-    <!-- Include any CSS or JS files here -->
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
 </head>
-<body>
-    <h1>Welcome to Your Flask App!</h1>
+<body class="bg-light">
+    <header class="container mt-3">
+        <div class="d-flex justify-content-between align-items-center">
+            <h1 class="text-primary">Mail Console for truonggpt.com</h1>
+            <div>
+                <a href="{{ url_for('auth.register') }}" class="btn btn-secondary">Register</a>
+                <a href="{{ url_for('auth.login') }}" class="btn btn-primary ml-2">Login</a>
+            </div>
+        </div>
+    </header>
 
-    <!-- Add Register and Login buttons -->
-    <div>
-        <a href="{{ url_for('home.index') }}">Home</a>
-        <a href="{{ url_for('auth.register') }}">Register</a>
-        <a href="{{ url_for('auth.login') }}">Login</a>
+    <div class="container mt-5">
+        <h1 class="text-center mb-4">Welcome to Your Truonggpt.com!</h1>
+
+        {% if current_user.is_authenticated %}
+            <div class="alert alert-success" role="alert">
+                Hello, {{ current_user.username }}!
+                <a href="{{ url_for('auth.logout') }}" class="ml-3">Logout</a>
+            </div>
+        {% else %}
+            <div class="alert alert-info" role="alert">
+                This is an SMTP mail console for the domain truonggpt.com. You can send emails, including to multiple addresses, attach files, write HTML emails, and more!
+                <a href="{{ url_for('auth.register') }}" class="ml-3">Register</a>
+                <a href="{{ url_for('auth.login') }}" class="ml-3">Login</a>
+            </div>
+        {% endif %}
     </div>
+
+    <footer class="container mt-3 text-muted text-center">
+        &copy; 2024 truonggpt.com | All rights reserved
+    </footer>
+
+    <!-- Bootstrap JS and Popper.js (for dropdowns, modals, etc.) -->
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
 </html>
