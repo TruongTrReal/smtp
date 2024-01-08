@@ -1,19 +1,40 @@
-<!-- email.html -->
+<!-- templates/email.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Email Page</title>
-    <!-- Include any CSS or JS files here -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
 </head>
 <body>
-    <h1>Welcome, {{ current_user.username }}!</h1>
-    <p>Your email: {{ current_user.email }}</p>
+    <div class="container mt-5">
 
-    <!-- Add a logout button -->
-    <form action="{{ url_for('auth.logout') }}" method="post">
-        <input type="submit" value="Logout">
-    </form>
+        {% if current_user.is_authenticated %}
+
+            <h1>Welcome, {{ current_user.username }}!</h1>
+            <p>Your email: {{ current_user.email }}</p>
+
+            <!-- Add a logout button -->
+            <form action="{{ url_for('auth.logout') }}" method="post">
+                <input type="submit" value="Logout">
+            </form>
+
+            <!-- Email Form Section -->
+            {% include 'email_form.html' %}
+
+        {% else %}
+
+            <div class="alert alert-info" role="alert">
+                This is an SMTP mail console for the domain truonggpt.com. To send mail you must login or register first!
+                <a href="{{ url_for('auth.register') }}" class="ml-3">Register</a>
+                <a href="{{ url_for('auth.login') }}" class="ml-3">Login</a>
+            </div>
+
+        {% endif %}
+
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="{{ url_for('static', filename='email_script.js') }}"></script>
 </body>
 </html>

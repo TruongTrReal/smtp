@@ -1,13 +1,13 @@
 # app/routes/authentication.py 
 import os
 from flask import Blueprint, render_template, redirect, url_for, flash, session, request
+from flask_mail import Message, Mail
 from werkzeug.security import generate_password_hash, check_password_hash
-from app import mongo, login_manager
+from app import mongo, mail
 from app.models import User
 from flask_oauthlib.client import OAuth
 from flask_login import login_user, logout_user
 import uuid
-import google.oauth2.credentials
 import google_auth_oauthlib.flow
 import random
 
@@ -21,7 +21,6 @@ API_VERSION = 'v2'
 
 auth_bp = Blueprint('auth', __name__)
 oauth = OAuth()
-
 
 def credentials_to_dict(credentials):
   return {'token': credentials.token,
@@ -58,8 +57,6 @@ def authorize():
 
 @auth_bp.route('/oauth2callback')
 def oauth2callback():
-    # Specify the state when creating the flow in the callback so that it can
-    # verified in the authorization server response.
     state = session.pop('state', None)
     
     if state is None:
@@ -91,9 +88,8 @@ def register():
         username = request.form.get('username')
         email = request.form.get('email')
         password = request.form.get('password')
-
-        # Check if the email already exists in the database
         existing_user = mongo.db.users.find_one({'email': email})
+
         if existing_user:
             flash('Email already registered. Please log in or use a different email.', 'danger')
             return redirect(url_for('auth.register'))
@@ -123,6 +119,7 @@ def register():
 
     return render_template('register.html')
 
+
 def send_verification_email(email, token):
     # Construct the verification link using a route in your app
     verification_link = url_for('auth.verify_email', token=token, _external=True)
@@ -134,9 +131,14 @@ def send_verification_email(email, token):
     # Send the email
     send_email(email, subject, body)
 
+
+@auth_bp.route('/verify_email', methods=['GET'])
+def verify_email():
+    return render_template('email_verify.html')
+
 def send_email(to, subject, body):
     # Use Flask-Mail to send the email
-    msg = Message(subject, sender='your-email@example.com', recipients=[to])
+    msg = Message(subject, sender='noreply@truonggpt.com', recipients=[to])
     msg.body = body
     mail.send(msg)
 
@@ -149,12 +151,14 @@ def login():
         user = mongo.db.users.find_one({'email': email})
 
         if user and check_password_hash(user['password'], password):
-            # Use the User class to create a User object for login
+
             user_obj = User(
                 user_id=user['id'],
                 username=user['username'],
                 email=email,
-                password=user['password']
+                password=user['password'],
+                verification_otp=user['verification_otp'],
+                email_verified=user['email_verified']
             )
             login_user(user_obj)
 
