@@ -15,7 +15,7 @@ import random
 
 CLIENT_SECRETS_FILE = os.path.join(os.path.dirname(__file__), "client-secret.json")
 
-SCOPES = ['https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/drive.metadata.readonly openid']
+SCOPES = ['https://www.googleapis.com/auth/drive.metadata.readonly https://www.googleapis.com/auth/userinfo.email openid https://www.googleapis.com/auth/userinfo.profile']
 API_SERVICE_NAME = 'drive'
 API_VERSION = 'v2'
 
