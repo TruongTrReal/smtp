@@ -182,15 +182,15 @@ def login():
 
         user = mongo.db.users.find_one({'email': email})
 
-        if user and check_password_hash(user['password'], password):
+        if user and check_password_hash(user['password'][0], password):
 
             user_obj = User(
                 user_id=user['id'],
                 username=user['username'],
                 email=email,
-                password=user['password'],
-                verification_otp=user['verification_otp'],
-                email_verified=user['email_verified']
+                password=user['password'][0],
+                verification_otp=user['verification_otp'][0],
+                email_verified=user['email_verified'][0]
             )
             login_user(user_obj)
 
