@@ -28,14 +28,14 @@ def send_otp_email(from_email, to_email, otp_code):
 
     try:
         with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
-            server.sendmail(from_addr=from_email , to_addrs=to_email, msg=msg.as_string())
+            print('from_addr=',from_email,' to_addrs=', to_email, 'msg=', msg.as_string())
+            server.sendmail(from_addr=from_email, to_addrs=to_email, msg=msg.as_string())
         print("OTP email sent successfully.")
     except Exception as e:
         print(f"Error sending OTP email: {e}")
 
 # Example usage:
-#from_email = 'noreply@truonggpt.com'
-#to_email = 'truongibfx4you@gmail.com'
-#otp_code = '452674'
-#send_otp_email(from_email, to_email, otp_code)
-
+# from_email = 'noreply@truonggpt.com'
+# to_email = 'truongibfx4you@gmail.com'
+# otp_code = '452674'
+# send_otp_email(from_email, to_email, otp_code)
