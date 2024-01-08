@@ -1,7 +1,7 @@
 # app/routes/__init__.py
 from .auth import auth_bp
 from .welcome import welcome_bp
-from .email import email_bp
+from .email_route import email_bp
 # Add more blueprint imports if needed
 
 def init_app(app):

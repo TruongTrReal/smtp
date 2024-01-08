@@ -22,10 +22,11 @@ def create_app():
     mongo.init_app(app)
 
     # Configure the app for Flask-Mail
-    app.config['MAIL_SERVER'] = 'truonggpt.com'
+    app.config['MAIL_SERVER'] = 'mail.truonggpt.com'
     app.config['MAIL_PORT'] = 587
     app.config['MAIL_USE_TLS'] = True
     app.config['MAIL_USE_SSL'] = False
+    app.config['MAIL_USERNAME'] = 'truong@truonggpt.com'  # Replace with your email
     mail.init_app(app)
 
     from app.routes import init_app
