@@ -10,6 +10,7 @@ from flask_login import login_user, logout_user
 import uuid
 import google_auth_oauthlib.flow
 import random
+from .send_otp import send_otp_email
 
 
 
@@ -108,39 +109,70 @@ def register():
             email_verified=False,
             )
 
+        # Send verification email
+        send_otp_email(email, otp)
+
         # Save user to MongoDB
         mongo.db.users.insert_one(new_user.__dict__)
 
-        # Send verification email
-        send_verification_email(email, otp)
-
         flash('Registration successful! Please check your email for verification.', 'success')
-        return redirect(url_for('auth.login'))
+        return render_template('email_verify.html')
 
     return render_template('register.html')
 
 
-def send_verification_email(email, token):
-    # Construct the verification link using a route in your app
-    verification_link = url_for('auth.verify_email', token=token, _external=True)
-
-    # Create the verification email message
-    subject = 'Email Verification'
-    body = f'To verify your email, click the following link: {verification_link}'
-    
-    # Send the email
-    send_email(email, subject, body)
-
-
-@auth_bp.route('/verify_email', methods=['GET'])
+@auth_bp.route('/verify_email', methods=['GET','POST'])
 def verify_email():
+    if request.method == 'POST':
+        # Get the OTP values from the form
+        otp1 = request.form.get('otp1')
+        otp2 = request.form.get('otp2')
+        otp3 = request.form.get('otp3')
+        otp4 = request.form.get('otp4')
+        otp5 = request.form.get('otp5')
+        otp6 = request.form.get('otp6')
+
+        # Concatenate the OTP values to form the complete OTP
+        entered_otp = f"{otp1}{otp2}{otp3}{otp4}{otp5}{otp6}"
+
+        user = mongo.db.users.find_one({'verification_otp': entered_otp})
+
+        if user:
+            # Mark the user's email as verified
+            mongo.db.users.update_one({'verification_otp': entered_otp}, {'$set': {'email_verified': True}})
+            flash('Email verification successful! You can now log in.', 'success')
+        else:
+            flash('Invalid verification token. Please check your email or request a new OTP.', 'danger')
+
+        return redirect(url_for('auth.login'))
+    
     return render_template('email_verify.html')
 
-def send_email(to, subject, body):
-    # Use Flask-Mail to send the email
-    msg = Message(subject, sender='noreply@truonggpt.com', recipients=[to])
-    msg.body = body
-    mail.send(msg)
+
+@auth_bp.route('/resend_otp', methods=['GET', 'POST'])
+def resend_otp():
+    if request.method == 'POST':
+        email = request.form.get('email')
+        user = mongo.db.users.find_one({'email': email, 'email_verified': False})
+
+        if user:
+            # Generate a new OTP
+            new_otp = str(random.randint(0, 999999))
+
+            # Update the user's verification OTP in the database
+            mongo.db.users.update_one({'email': email}, {'$set': {'verification_otp': new_otp}})
+
+            # Resend verification email with the new OTP
+            send_otp_email(email, new_otp)
+
+            flash('New OTP sent! Please check your email for verification.', 'success')
+            return redirect(url_for('auth.login'))
+        else:
+            flash('Invalid email or email is already verified.', 'danger')
+
+    return render_template('email_verify.html')
+
+
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
