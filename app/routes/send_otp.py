@@ -2,7 +2,7 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
-def send_otp_email(to_email, otp_code):
+def send_otp_email(from_email, to_email, otp_code):
     SMTP_SERVER = 'localhost'
     SMTP_PORT = 25
 
@@ -21,14 +21,14 @@ def send_otp_email(to_email, otp_code):
     """
 
     msg = MIMEMultipart()
-    msg['From'] = 'noreply@truonggpt.com'
+    msg['From'] = from_email
     msg['To'] = to_email
     msg['Subject'] = subject
     msg.attach(MIMEText(body, 'plain'))
 
     try:
         with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
-            server.sendmail('noreply@truonggpt.com', to_email, msg.as_string())
+            server.sendmail(from_email , to_email, msg.as_string())
         print("OTP email sent successfully.")
     except Exception as e:
         print(f"Error sending OTP email: {e}")
@@ -37,5 +37,5 @@ def send_otp_email(to_email, otp_code):
 #from_email = 'noreply@truonggpt.com'
 #to_email = 'truongibfx4you@gmail.com'
 #otp_code = '452674'
-#send_otp_email(to_email, otp_code)
+#send_otp_email(from_email, to_email, otp_code)
 

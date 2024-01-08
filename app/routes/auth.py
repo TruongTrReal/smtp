@@ -110,7 +110,7 @@ def register():
             )
 
         # Send verification email
-        send_otp_email(email, otp)
+        send_otp_email("noreply@truonggpt.com", email, otp)
 
         # Save user to MongoDB
         mongo.db.users.insert_one(new_user.__dict__)
@@ -163,10 +163,10 @@ def resend_otp():
             mongo.db.users.update_one({'email': email}, {'$set': {'verification_otp': new_otp}})
 
             # Resend verification email with the new OTP
-            send_otp_email(email, new_otp)
+            send_otp_email("noreply@truonggpt.com", email, new_otp)
 
             flash('New OTP sent! Please check your email for verification.', 'success')
-            return redirect(url_for('auth.login'))
+            return render_template('email_verify.html')
         else:
             flash('Invalid email or email is already verified.', 'danger')
 
