@@ -9,6 +9,8 @@ from flask_login import login_user, logout_user
 import uuid
 import google.oauth2.credentials
 import google_auth_oauthlib.flow
+import random
+
 
 
 CLIENT_SECRETS_FILE = os.path.join(os.path.dirname(__file__), "client-secret.json")
@@ -20,19 +22,6 @@ API_VERSION = 'v2'
 auth_bp = Blueprint('auth', __name__)
 oauth = OAuth()
 
-google = oauth.remote_app(
-    'google',
-    consumer_key='294737311113-vi4mnctcscovl0tgvg6eesgo16v56i8p.apps.googleusercontent.com',
-    consumer_secret='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',
-    request_token_params={
-        'scope': 'email',
-    },
-    base_url='https://www.googleapis.com/oauth2/v1/',
-    request_token_url=None,
-    access_token_method='POST',
-    access_token_url='https://accounts.google.com/o/oauth2/token',
-    authorize_url='https://accounts.google.com/o/oauth2/auth',
-)
 
 def credentials_to_dict(credentials):
   return {'token': credentials.token,
@@ -94,46 +83,10 @@ def oauth2callback():
     return redirect(url_for('email.index'))
 
 
-@auth_bp.route('/login/google')
-def google_login():
-    return google.authorize(callback=url_for('auth.google_login', _external=True))
-
-
-@auth_bp.route('/login/google/authorized')
-def google_authorized():
-    response = google.authorized_response()
-    if response is None or response.get('access_token') is None:
-        flash('Access denied: reason={} error={}'.format(
-            request.args['error_reason'],
-            request.args['error_description']
-        ))
-        return redirect(url_for('auth.login'))
-
-    google_user = google.get('userinfo')
-    email = google_user.data.get('email')
-
-    # Check if the email already exists in the database
-    existing_user = mongo.db.users.find_one({'email': email})
-    if existing_user:
-        flash('Login successful!', 'success')
-        return redirect(url_for('email.index'))
-
-    # Email not found, save the user to the database
-    new_user = {'email': email}
-    mongo.db.users.insert_one(new_user)
-
-    flash('Google login successful! User registered.', 'success')
-    return redirect(url_for('home.index'))
-
-@google.tokengetter
-def get_google_oauth_token():
-    return session.get('google_token')
-
 
 @auth_bp.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
-
         user_id = uuid.uuid4().hex
         username = request.form.get('username')
         email = request.form.get('email')
@@ -144,24 +97,48 @@ def register():
         if existing_user:
             flash('Email already registered. Please log in or use a different email.', 'danger')
             return redirect(url_for('auth.register'))
+
+        hashed_password = generate_password_hash(password, method='pbkdf2:sha256:600000')        
         
+        otp = str(random.randint(0, 999999))
 
-        hashed_password = generate_password_hash(password, method='pbkdf2:sha256:600000')
-
-        # Create a new user instance without saving to the database
-        new_user = User(user_id=user_id, username=username, email=email, password=hashed_password)
-
-        # Log in the user immediately after registration
-        login_user(new_user)
+        # Save the verification token and user details to the database
+        new_user = User(
+            user_id=user_id, 
+            username=username, 
+            email=email, 
+            password=hashed_password, 
+            verification_otp=otp,
+            email_verified=False,
+            )
 
         # Save user to MongoDB
         mongo.db.users.insert_one(new_user.__dict__)
 
-        flash('Registration successful! You are now logged in.', 'success')
-        return redirect(url_for('email.index'))
+        # Send verification email
+        send_verification_email(email, otp)
+
+        flash('Registration successful! Please check your email for verification.', 'success')
+        return redirect(url_for('auth.login'))
 
     return render_template('register.html')
 
+def send_verification_email(email, token):
+    # Construct the verification link using a route in your app
+    verification_link = url_for('auth.verify_email', token=token, _external=True)
+
+    # Create the verification email message
+    subject = 'Email Verification'
+    body = f'To verify your email, click the following link: {verification_link}'
+    
+    # Send the email
+    send_email(email, subject, body)
+
+def send_email(to, subject, body):
+    # Use Flask-Mail to send the email
+    msg = Message(subject, sender='your-email@example.com', recipients=[to])
+    msg.body = body
+    mail.send(msg)
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
@@ -174,14 +151,19 @@ def login():
         if user and check_password_hash(user['password'], password):
             # Use the User class to create a User object for login
             user_obj = User(
-                user_id=user['_id'],
+                user_id=user['id'],
                 username=user['username'],
-                email=user['email'],
+                email=email,
                 password=user['password']
             )
-            login_user(user_obj)  # Login the user
+            login_user(user_obj)
+
+            print(login_user(user_obj))
+
             flash('Login successful!', 'success')
-            return redirect(url_for('email.index'))  # Redirect to a protected route
+            
+            return redirect(url_for('email.index'))
+        
         else:
             flash('Login failed. Check your email and password.', 'danger')
 

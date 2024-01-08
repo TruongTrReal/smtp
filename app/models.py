@@ -10,11 +10,14 @@ def load_user(user):
     return None
 
 class User(UserMixin):
-    def __init__(self, user_id, username, email, password):
-        self.id = str(user_id)  # Convert ObjectId to string for Flask-Login
+    def __init__(self, user_id, username, email, password, verification_otp, email_verified):
+        self.id = user_id
         self.username = username
         self.email = email
-        self.password = password
+        self.password = password,
+        self.verification_otp = verification_otp,
+        self.email_verified = email_verified,
+
 
     def save(self):
         # Save user to MongoDB
