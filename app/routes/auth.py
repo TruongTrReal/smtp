@@ -190,7 +190,7 @@ def login():
                 email=email,
                 password=user['password'][0],
                 verification_otp=user['verification_otp'][0],
-                email_verified=user['email_verified'][0]
+                email_verified=user['email_verified']
             )
             login_user(user_obj)
 
