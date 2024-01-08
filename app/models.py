@@ -36,7 +36,9 @@ class User(UserMixin):
                     user_id=user_data['id'],
                     username=user_data['username'],
                     email=user_data['email'],
-                    password=user_data['password']
+                    password=user_data['password'][0],
+                    verification_otp=user_data['verification_otp'][0],
+                    email_verified=user_data['email_verified']
                 )
             return None
         return None
