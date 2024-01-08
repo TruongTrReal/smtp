@@ -31,6 +31,15 @@
                     </div>
                     <button type="submit" class="btn btn-primary btn-block">Login</button>
                 </form>
+
+                {% with messages = get_flashed_messages() %}
+                    {% if messages %}
+                        <div class="alert alert-{{ messages[0].category }}">
+                            {{ messages[0] }}
+                        </div>
+                    {% endif %}
+                {% endwith %}
+
                 <hr>
                 <a href="{{ url_for('auth.authorize') }}" class="btn btn-block">
                     <img src="https://th.bing.com/th/id/OIP.HgH-NjiOdFOrkmwjsZCCfAHaHl?rs=1&pid=ImgDetMain" alt="Google Login" class="google-icon"> Login with Google
