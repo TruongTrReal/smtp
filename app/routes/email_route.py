@@ -1,14 +1,23 @@
 # routes/email_route.py
 from flask import Blueprint, render_template, request, jsonify
 from flask_login import login_required, current_user
-from app import login_manager
+from pymongo import MongoClient
 import smtplib
+from datetime import datetime
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.mime.application import MIMEApplication
 
 email_bp = Blueprint('email', __name__)
 
+# MongoDB configuration
+MONGO_URI = 'mongodb://localhost:27017/'
+DB_NAME = 'smtp-email-app'
+COLLECTION_NAME = 'mails'
+
+client = MongoClient(MONGO_URI)
+db = client[DB_NAME]
+collection = db[COLLECTION_NAME]
 
 @email_bp.route('/email')
 @login_required
@@ -58,9 +67,28 @@ def send_email():
             msg.attach(attached_file)
 
         with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
-            server.sendmail(sender, recipients.split(','), msg.as_string())
+            try:
+                failed_recipients = server.sendmail(sender, recipients.split(','), msg.as_string())
+                success = not failed_recipients
+            except Exception as e:
+                failed_recipients = recipients.split(',')
+                success = False
 
-        return jsonify({'message': 'Email sent successfully!'}), 200
+        print(success)
+        print(failed_recipients)
+
+        # Log the email
+        log_entry = {
+            'sender': sender,
+            'recipients': recipients,
+            'subject': subject,
+            'datetime_utc': datetime.utcnow(),
+            'success': success,
+        }
+        collection.insert_one(log_entry)
+
+        # Pass log data to the template
+        return render_template('send_result.html', log_entry=log_entry)
 
     except Exception as e:
         return jsonify({'message': f'Error sending email: {str(e)}'}), 500
