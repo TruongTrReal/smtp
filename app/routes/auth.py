@@ -176,7 +176,7 @@ def verify_email():
 
 @auth_bp.route('/resend_otp', methods=['GET', 'POST'])
 def resend_otp():
-    if request.method == 'POST':
+    if request:
         email = request.form.get('email')
         user = mongo.db.users.find_one({'email': email, 'email_verified': False})
 
@@ -228,7 +228,7 @@ def login():
         
         elif user and check_password_hash(user['password'][0], password) and user['email_verified']!=True:
             flash('You have not verify email yet. Lets verify!', 'danger')
-            return redirect(url_for('auth.resend_otp'))
+            return redirect(url_for('auth.resend_otp', email=email))
 
         else:
             flash('Login failed. Check your email and password.', 'danger')
