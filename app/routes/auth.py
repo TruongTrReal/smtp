@@ -102,7 +102,7 @@ def callback():
         mongo.db.users.insert_one(user.__dict__)
 
     login_user(user)
-    return redirect(url_for("mail.index"))
+    return redirect(url_for("email.index"))
 
 
 
