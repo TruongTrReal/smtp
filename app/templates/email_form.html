@@ -13,8 +13,8 @@
         <form id="emailForm">
             <div class="form-group">
                 <label for="sender">Sender's Email:</label>
-                <input type="email" class="form-control" id="sender" value="{{ default_sender }}" required>
-                @truonggpt.com
+                <input type="email" class="form-control" id="sender" value="{{ default_sender }}" required> @truonggpt.com
+                
             </div>
             <div class="form-group">
                 <label for="recipients">Recipients' Email (comma-separated):</label>
@@ -43,7 +43,7 @@
     <script>
         $(document).ready(function() {
             $('#sender').val('{{ default_sender }}');
-            $('#emailForm').css('max-width', '300px');
+            $('#sender').css('max-width', '300px');
         });
     </script>
 </body>
