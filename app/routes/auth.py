@@ -174,10 +174,10 @@ def verify_email():
     return render_template('email_verify.html')
 
 
-@auth_bp.route('/resend_otp', methods=['GET', 'POST'])
+@auth_bp.route('/resend_otp', methods=['GET'])
 def resend_otp():
     if request:
-        email = request.form.get('email')
+        email = request.args.get('email')
         user = mongo.db.users.find_one({'email': email, 'email_verified': False})
 
         if user:
