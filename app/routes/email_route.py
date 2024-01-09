@@ -5,6 +5,7 @@ from app import login_manager
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from email.mime.application import MIMEApplication
 
 email_bp = Blueprint('email', __name__)
 

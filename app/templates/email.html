@@ -52,7 +52,7 @@
                         {% if current_user.is_authenticated %}
                             <label for="sender">Sender's Email:</label>
                             <div class="input-group">
-                                <input type="email" class="form-control" id="sender" value="{{ current_user.username }}" required>
+                                <input type="text" class="form-control" id="sender" value="{{ current_user.username }}" required>
                                 <div class="input-group-addon"> @truonggpt.com</div>
                             </div>
                         {% else %}
