@@ -207,7 +207,7 @@ def login():
 
         user = mongo.db.users.find_one({'email': email})
 
-        if user and check_password_hash(user['password'][0], password) and user['email_verified']:
+        if user and check_password_hash(user['password'][0], password) and user['email_verified']==True:
 
             user_obj = User(
                 user_id=user['id'],
