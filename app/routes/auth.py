@@ -44,7 +44,7 @@ def authorize():
     )
     return redirect(request_uri)
 
-@auth_bp.route("/login/callback")
+@auth_bp.route("/authorize/callback")
 def callback():
     # Get authorization code Google sent back to you
     code = request.args.get("code")
@@ -103,8 +103,6 @@ def callback():
 
     login_user(user)
     return redirect(url_for("mail.index"))
-
-
 
 
 
