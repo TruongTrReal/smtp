@@ -97,7 +97,8 @@ def callback():
     existing_user = mongo.db.users.find_one({'email': users_email})
 
     if existing_user:
-        flash('user exsist in database', 'success')
+        flash('user exsist in database. Please login with password', 'danger')
+        return redirect(url_for("auth.login"))
     else:
         mongo.db.users.insert_one(user.__dict__)
 
