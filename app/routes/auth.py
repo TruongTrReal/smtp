@@ -165,7 +165,6 @@ def verify_email():
         if user:
             # Mark the user's email as verified
             mongo.db.users.update_one({'verification_otp': entered_otp}, {'$set': {'email_verified': True}})
-            flash('Email verification successful! You can now log in.', 'success')
         else:
             flash('Invalid verification token. Please check your email or request a new OTP.', 'danger')
 
@@ -221,8 +220,6 @@ def login():
             login_user(user_obj)
 
             print(login_user(user_obj))
-
-            flash('Login successful!', 'success')
             
             return redirect(url_for('email.index'))
         
