@@ -1,5 +1,17 @@
 // static/js/email_sript.js 
 $(document).ready(function() {
+
+    // Toggle the visibility of the message textareas based on "Send as HTML" checkbox
+    $('#htmlCheckbox').change(function() {
+        if ($(this).is(':checked')) {
+            $('#textMessage').hide();
+            $('#htmlMessage').show();
+        } else {
+            $('#textMessage').show();
+            $('#htmlMessage').hide();
+        }
+    });
+
     $('#emailForm').submit(function(e) {
         e.preventDefault(); // Prevent the default form submission
 
@@ -12,7 +24,7 @@ $(document).ready(function() {
         };
 
         // Use htmlMessage if the checkbox is checked, otherwise use message
-        formData.message = formData.isHtml ? $('#htmlMessage').val() : $('#message').val();
+        formData.message = formData.isHtml ? $('#htmlMessage').val() : $('#textMessage').val();
 
         // Create FormData object for handling file attachments
         var form = new FormData();

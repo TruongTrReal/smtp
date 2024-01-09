@@ -71,14 +71,23 @@
                         <label for="subject">Subject:</label>
                         <input type="text" class="form-control" id="subject" required>
                     </div>
-                    <div class="form-group">
-                        <label for="message">Message:</label>
-                        <textarea class="form-control" id="message" rows="4" required></textarea>
-                    </div>
+
                     <div class="form-check">
                         <input class="form-check-input" type="checkbox" id="htmlCheckbox">
                         <label class="form-check-label" for="htmlCheckbox">Send as HTML</label>
                     </div>
+
+                    <!-- if user not check Send as HTML, dis play this div, hide below -->
+                    <div class="form-group">
+                        <label for="message">Message:</label>
+                        <textarea class="form-control" id="textMessage" rows="4" required></textarea>
+                    </div>
+                    <!-- if user check Send as HTML dis play this, hide above -->
+                    <div class="form-group">
+                        <label for="htmlMessage">HTML Message:</label>
+                        <textarea class="form-control" id="htmlMessage" rows="4" required></textarea>
+                    </div>
+
                     <div class="form-group">
                         <label for="attachments">Attachments:</label>
                         <input type="file" class="form-control-file" id="attachments">

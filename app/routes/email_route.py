@@ -24,6 +24,8 @@ def send_email():
         recipients = request.form['recipients']
         subject = request.form['subject']
         message = request.form['message']
+        is_html = request.form.get('isHtml', 'false').lower() == 'true'
+
 
         # Handling attachments
         attachments = request.files.getlist('attachments')
@@ -42,7 +44,16 @@ def send_email():
         msg['From'] = sender
         msg['To'] = recipients
         msg['Subject'] = subject
-        msg.attach(MIMEText(message, 'plain'))
+
+        if is_html:
+            # If it's an HTML email, include both plain text and HTML versions
+            text_part = MIMEText(message, 'plain')
+            html_part = MIMEText(message, 'html')
+            msg.attach(text_part)
+            msg.attach(html_part)
+        else:
+            # If not HTML, use plain text only
+            msg.attach(MIMEText(message, 'plain'))
 
         for attachment in attached_files:
             attached_file = MIMEApplication(attachment['content'])
