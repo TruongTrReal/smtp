@@ -47,10 +47,10 @@ $(document).ready(function() {
             contentType: false, // Ensure proper content type for FormData
             processData: false, // Prevent jQuery from processing data
             success: function(response) {
-                $('#result').html('<div class="alert alert-success" role="alert">' + response.message + '</div>');
+                $('#result').html(response);  // Assuming 'response' contains the HTML content
             },
             error: function(error) {
-                $('#result').html('<div class="alert alert-danger" role="alert">Error: ' + error.responseJSON.message + '</div>');
+                $('#result').html(response);
             }
         });
     });
