@@ -2,7 +2,8 @@
 $(document).ready(function() {
     $('#htmlMessageBox').hide();
     $('#htmlMessage').prop('required', false);
-
+    $('#recipientsFormatAlert').hide();
+    
     var recipientsInput = $('#recipients');
     var sendEmailButton = $('#sendEmailButton');
 
@@ -18,6 +19,11 @@ $(document).ready(function() {
             return isValidEmail(email.trim());
         });
         sendEmailButton.prop('disabled', !validEmails);
+        if (!validEmails && recipientsValue !== '') {
+            recipientsFormatAlert.show();
+        } else {
+            recipientsFormatAlert.hide();
+        }
     }
 
     function isValidEmail(email) {
