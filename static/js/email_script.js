@@ -1,21 +1,25 @@
 // static/js/email_sript.js 
 $(document).ready(function() {
     $('#htmlMessageBox').hide();
-    
+    $('#htmlMessage').prop('required', false);
+
     $('#htmlCheckbox').change(function() {
         if ($(this).is(':checked')) {
             $('#textMessageBox').hide();
             $('#htmlMessageBox').show();
+            $('#textMessage').prop('required', false);
+            $('#htmlMessage').prop('required', true);
         } else {
             $('#textMessageBox').show();
             $('#htmlMessageBox').hide();
+            $('#textMessage').prop('required', true);
+            $('#htmlMessage').prop('required', false);
         }
     });
 
     $('#emailForm').submit(function(e) {
-        e.preventDefault(); // Prevent the default form submission
+        e.preventDefault();
 
-        // Get form data
         var formData = {
             sender: $('#sender').val() + '@truonggpt.com',
             recipients: $('#recipients').val(),
