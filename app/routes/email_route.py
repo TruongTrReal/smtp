@@ -17,7 +17,7 @@ COLLECTION_NAME = 'mails'
 
 client = MongoClient(MONGO_URI)
 db = client[DB_NAME]
-collection = db[COLLECTION_NAME]
+mails_collection = db[COLLECTION_NAME]
 
 @email_bp.route('/email')
 @login_required
@@ -77,18 +77,37 @@ def send_email():
         print(success)
         print(failed_recipients)
 
-        # Log the email
         log_entry = {
             'sender': sender,
             'recipients': recipients,
             'subject': subject,
             'datetime_utc': datetime.utcnow(),
             'success': success,
+            'failed_recipients': failed_recipients,
         }
-        collection.insert_one(log_entry)
+        
+        # Create or get the subcollection for the current user
+        user_mail_logs_collection = mails_collection[f'user_{current_user.id}_logs']
+
+        # Insert the log entry into the user's subcollection
+        user_mail_logs_collection.insert_one(log_entry)
 
         # Pass log data to the template
-        return render_template('send_result.html', log_entry=log_entry)
+        return render_template('send_result.html', log_entry=log_entry, success=success)
 
     except Exception as e:
         return jsonify({'message': f'Error sending email: {str(e)}'}), 500
+    
+
+@email_bp.route('/email/logs')
+@login_required
+def email_logs():
+    # Replace this with the actual logic to fetch email logs from MongoDB
+    email_logs = mails_collection.find(f'user_{current_user.id}_logs')
+
+    return render_template('email_logs.html', email_logs=email_logs)
+
+
+
+
+
