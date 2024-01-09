@@ -96,7 +96,7 @@ def send_email():
 @login_required
 def email_logs():
     # Replace this with the actual logic to fetch email logs from MongoDB
-    email_logs = mails_collection.find(f'user_{current_user.id}_logs')
+    email_logs = mails_collection[f'user_{current_user.id}_logs'].find()
 
     return render_template('email_logs.html', email_logs=email_logs)
 
