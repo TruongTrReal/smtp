@@ -1,3 +1,4 @@
+// static/js/email_sript.js 
 $(document).ready(function() {
     $('#emailForm').submit(function(e) {
         e.preventDefault(); // Prevent the default form submission
