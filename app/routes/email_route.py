@@ -16,6 +16,7 @@ def index():
 
 
 @email_bp.route('/email/send', methods=['POST'])
+@login_required
 def send_email():
     try:
         sender = request.form['sender']
@@ -23,21 +24,29 @@ def send_email():
         subject = request.form['subject']
         message = request.form['message']
 
-        # You may want to add more logic to handle attachments, if needed
+        # Handling attachments
+        attachments = request.files.getlist('attachments')
+        attached_files = []
+        for attachment in attachments:
+            attached_files.append({
+                'filename': attachment.filename,
+                'content': attachment.read(),
+            })
 
         # Send email
         SMTP_SERVER = 'localhost'
         SMTP_PORT = 25
 
-        email_body = f"""
-        {message}
-        """
-
         msg = MIMEMultipart()
         msg['From'] = sender
         msg['To'] = recipients
         msg['Subject'] = subject
-        msg.attach(MIMEText(email_body, 'plain'))
+        msg.attach(MIMEText(message, 'plain'))
+
+        for attachment in attached_files:
+            attached_file = MIMEApplication(attachment['content'])
+            attached_file.add_header('Content-Disposition', 'attachment', filename=attachment['filename'])
+            msg.attach(attached_file)
 
         with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
             server.sendmail(sender, recipients.split(','), msg.as_string())

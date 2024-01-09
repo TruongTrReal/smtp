@@ -7,8 +7,11 @@ $(document).ready(function() {
             sender: $('#sender').val() + '@truonggpt.com',
             recipients: $('#recipients').val(),
             subject: $('#subject').val(),
-            message: $('#message').val(),
+            isHtml: $('#htmlCheckbox').is(':checked'),
         };
+
+        // Use htmlMessage if the checkbox is checked, otherwise use message
+        formData.message = formData.isHtml ? $('#htmlMessage').val() : $('#message').val();
 
         // Create FormData object for handling file attachments
         var form = new FormData();
