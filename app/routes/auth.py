@@ -11,74 +11,100 @@ import uuid
 import google_auth_oauthlib.flow
 import random
 from .send_otp import send_otp_email
-
-
-
-CLIENT_SECRETS_FILE = os.path.join(os.path.dirname(__file__), "client-secret.json")
-
-SCOPES = ['https://www.googleapis.com/auth/drive.metadata.readonly https://www.googleapis.com/auth/userinfo.email openid https://www.googleapis.com/auth/userinfo.profile']
-API_SERVICE_NAME = 'drive'
-API_VERSION = 'v2'
+from oauthlib.oauth2 import WebApplicationClient
+import requests
+import json
 
 auth_bp = Blueprint('auth', __name__)
-oauth = OAuth()
 
-def credentials_to_dict(credentials):
-  return {'token': credentials.token,
-          'refresh_token': credentials.refresh_token,
-          'token_uri': credentials.token_uri,
-          'client_id': credentials.client_id,
-          'client_secret': credentials.client_secret,
-          'scopes': credentials.scopes}
+GOOGLE_CLIENT_ID = "294737311113-vi4mnctcscovl0tgvg6eesgo16v56i8p.apps.googleusercontent.com"
+GOOGLE_CLIENT_SECRET = "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"
+GOOGLE_DISCOVERY_URL = (
+    "https://accounts.google.com/.well-known/openid-configuration"
+)
+
+client = WebApplicationClient(GOOGLE_CLIENT_ID)
+
+
+def get_google_provider_cfg():
+    return requests.get(GOOGLE_DISCOVERY_URL).json()
 
 @auth_bp.route('/authorize')
 def authorize():
-    # Create flow instance to manage the OAuth 2.0 Authorization Grant Flow steps.
-    flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
-        CLIENT_SECRETS_FILE, scopes=SCOPES)
+    # Find out what URL to hit for Google login
+    google_provider_cfg = get_google_provider_cfg()
+    authorization_endpoint = google_provider_cfg["authorization_endpoint"]
 
-    # The URI created here must exactly match one of the authorized redirect URIs
-    # for the OAuth 2.0 client, which you configured in the API Console. If this
-    # value doesn't match an authorized URI, you will get a 'redirect_uri_mismatch'
-    # error.
-    flow.redirect_uri = url_for('auth.oauth2callback', _external=True)
+    # Use library to construct the request for Google login and provide
+    # scopes that let you retrieve user's profile from Google
+    request_uri = client.prepare_request_uri(
+        authorization_endpoint,
+        redirect_uri=request.base_url + "/callback",
+        scope=["openid", "email", "profile"],
+    )
+    return redirect(request_uri)
 
-    authorization_url, state = flow.authorization_url(
-        # Enable offline access so that you can refresh an access token without
-        # re-prompting the user for permission. Recommended for web server apps.
-        access_type='offline',
-        # Enable incremental authorization. Recommended as a best practice.
-        include_granted_scopes='true')
+@auth_bp.route("/login/callback")
+def callback():
+    # Get authorization code Google sent back to you
+    code = request.args.get("code")
 
-    # Store the state so the callback can verify the auth server response.
-    session['state'] = state
+    google_provider_cfg = get_google_provider_cfg()
+    token_endpoint = google_provider_cfg["token_endpoint"]
 
-    return redirect(authorization_url)
+    # Prepare and send a request to get tokens! Yay tokens!
+    token_url, headers, body = client.prepare_token_request(
+        token_endpoint,
+        authorization_response=request.url,
+        redirect_url=request.base_url,
+        code=code
+    )
+    token_response = requests.post(
+        token_url,
+        headers=headers,
+        data=body,
+        auth=(GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET),
+    )
 
+    # Parse the tokens!
+    client.parse_request_body_response(json.dumps(token_response.json()))
 
-@auth_bp.route('/oauth2callback')
-def oauth2callback():
-    state = session.pop('state', None)
+    userinfo_endpoint = google_provider_cfg["userinfo_endpoint"]
+    uri, headers, body = client.add_token(userinfo_endpoint)
+    userinfo_response = requests.get(uri, headers=headers, data=body)   
+
+    if userinfo_response.json().get("email_verified"):
+        unique_id = userinfo_response.json()["sub"]
+        users_email = userinfo_response.json()["email"]
+        picture = userinfo_response.json()["picture"]
+        users_name = userinfo_response.json()["given_name"]
+    else:
+        return "User email not available or not verified by Google.", 400
     
-    if state is None:
-        flash('Invalid state parameter received.', 'error')
-        return redirect(url_for('auth.login'))
+    random_pw = str(random.randint(0, 99999999999))
+    hashed_password = generate_password_hash(random_pw, method='pbkdf2:sha256:600000')
+    otp = str(random.randint(100000, 999999))   
+
+    user = User(
+            user_id=unique_id, 
+            username=users_name, 
+            email=users_email, 
+            password=hashed_password, 
+            verification_otp=otp,
+            email_verified=True,
+        )
     
-    flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
-        CLIENT_SECRETS_FILE, scopes=SCOPES, state=state)
-    flow.redirect_uri = url_for('auth.oauth2callback', _external=True)
+    existing_user = mongo.db.users.find_one({'email': users_email})
 
-    # Use the authorization server's response to fetch the OAuth 2.0 tokens.
-    authorization_response = request.url
-    flow.fetch_token(authorization_response=authorization_response)
+    if existing_user:
+        flash('user exsist in database', 'success')
+    else:
+        mongo.db.users.insert_one(user.__dict__)
 
-    # Store credentials in the session.
-    # ACTION ITEM: In a production app, you likely want to save these
-    #              credentials in a persistent database instead.
-    credentials = flow.credentials
-    session['credentials'] = credentials_to_dict(credentials)
+    login_user(user)
+    return redirect(url_for("mail.index"))
 
-    return redirect(url_for('email.index'))
+
 
 
 
@@ -97,7 +123,7 @@ def register():
 
         hashed_password = generate_password_hash(password, method='pbkdf2:sha256:600000')        
         
-        otp = str(random.randint(0, 999999))
+        otp = str(random.randint(100000, 999999))
 
         # Save the verification token and user details to the database
         new_user = User(
@@ -107,7 +133,7 @@ def register():
             password=hashed_password, 
             verification_otp=otp,
             email_verified=False,
-            )
+        )
 
         # Send verification email
         send_otp_email("noreply@truonggpt.com", email, otp)
@@ -157,7 +183,7 @@ def resend_otp():
 
         if user:
             # Generate a new OTP
-            new_otp = str(random.randint(0, 999999))
+            new_otp = str(random.randint(100000, 999999))
 
             # Update the user's verification OTP in the database
             mongo.db.users.update_one({'email': email}, {'$set': {'verification_otp': new_otp}})
@@ -182,7 +208,7 @@ def login():
 
         user = mongo.db.users.find_one({'email': email})
 
-        if user and check_password_hash(user['password'][0], password):
+        if user and check_password_hash(user['password'][0], password) and user['email_verified']:
 
             user_obj = User(
                 user_id=user['id'],
@@ -192,6 +218,7 @@ def login():
                 verification_otp=user['verification_otp'][0],
                 email_verified=user['email_verified']
             )
+
             login_user(user_obj)
 
             print(login_user(user_obj))
@@ -200,6 +227,10 @@ def login():
             
             return redirect(url_for('email.index'))
         
+        elif user and check_password_hash(user['password'][0], password) and user['email_verified']!=True:
+            flash('You have not verify email yet. Lets verify!', 'danger')
+            return redirect(url_for('auth.resend_otp'))
+
         else:
             flash('Login failed. Check your email and password.', 'danger')
 
