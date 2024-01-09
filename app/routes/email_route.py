@@ -25,7 +25,7 @@ def index():
     return render_template('email.html', username=current_user.username, email=current_user.email)
 
 
-@email_bp.route('/email/send', methods=['POST'])
+@email_bp.route('/email/send', methods=['GET','POST'])
 @login_required
 def send_email():
     sender = request.form['sender']
