@@ -3,6 +3,28 @@ $(document).ready(function() {
     $('#htmlMessageBox').hide();
     $('#htmlMessage').prop('required', false);
 
+    var recipientsInput = $('#recipients');
+    var sendEmailButton = $('#sendEmailButton');
+
+    recipientsInput.on('input', function() {
+        validateAndToggleButton();
+    });
+
+    function validateAndToggleButton() {
+        var recipientsValue = recipientsInput.val().trim();
+        var recipientsArray = recipientsValue.split(',');
+
+        var validEmails = recipientsArray.every(function(email) {
+            return isValidEmail(email.trim());
+        });
+        sendEmailButton.prop('disabled', !validEmails);
+    }
+
+    function isValidEmail(email) {
+        var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return emailRegex.test(email);
+    }
+
     $('#htmlCheckbox').change(function() {
         if ($(this).is(':checked')) {
             $('#textMessageBox').hide();

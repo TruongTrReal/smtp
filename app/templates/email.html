@@ -52,13 +52,13 @@
                         {% if current_user.is_authenticated %}
                             <label for="sender">Sender's Email:</label>
                             <div class="input-group">
-                                <input type="text" class="form-control" id="sender" value="{{ current_user.username }}" required>
+                                <input type="text" class="form-control" pattern="[a-zA-Z0-9]+" id="sender" value="{{ current_user.username }}" required>
                                 <div class="input-group-addon"> @truonggpt.com</div>
                             </div>
                         {% else %}
                             <label for="sender">Sender's Email:</label>
                             <div class="input-group">
-                                <input type="text" class="form-control" id="sender" required>
+                                <input type="text" class="form-control" pattern="[a-zA-Z0-9]+"  id="sender" required>
                                 <div class="input-group-addon">@truonggpt.com</div>
                             </div>
                         {% endif %}
@@ -92,7 +92,7 @@
                         <label for="attachments">Attachments:</label>
                         <input type="file" class="form-control-file" id="attachments">
                     </div>
-                    <button type="submit" class="btn btn-primary">Send Email</button>
+                    <button id="sendEmailButton" type="submit" class="btn btn-primary">Send Email</button>
                 </form>
                 <div id="result" class="mt-3"></div>
             </div>
