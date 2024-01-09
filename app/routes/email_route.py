@@ -28,75 +28,68 @@ def index():
 @email_bp.route('/email/send', methods=['POST'])
 @login_required
 def send_email():
-    try:
-        sender = request.form['sender']
-        recipients = request.form['recipients']
-        subject = request.form['subject']
-        message = request.form['message']
-        is_html = request.form.get('isHtml', 'false').lower() == 'true'
+    sender = request.form['sender']
+    recipients = request.form['recipients']
+    subject = request.form['subject']
+    message = request.form['message']
+    is_html = request.form.get('isHtml', 'false').lower() == 'true'
 
+    # Handling attachments
+    attachments = request.files.getlist('attachments')
+    attached_files = []
+    for attachment in attachments:
+        attached_files.append({
+            'filename': attachment.filename,
+            'content': attachment.read(),
+        })
 
-        # Handling attachments
-        attachments = request.files.getlist('attachments')
-        attached_files = []
-        for attachment in attachments:
-            attached_files.append({
-                'filename': attachment.filename,
-                'content': attachment.read(),
-            })
+    # Send email
+    SMTP_SERVER = 'localhost'
+    SMTP_PORT = 25
 
-        # Send email
-        SMTP_SERVER = 'localhost'
-        SMTP_PORT = 25
+    msg = MIMEMultipart()
+    msg['From'] = sender
+    msg['To'] = recipients
+    msg['Subject'] = subject
 
-        msg = MIMEMultipart()
-        msg['From'] = sender
-        msg['To'] = recipients
-        msg['Subject'] = subject
+    if is_html:
+        html_part = MIMEText(message, 'html')
+        msg.attach(html_part)
+    else:
+        # If not HTML, use plain text only
+        msg.attach(MIMEText(message, 'plain'))
 
-        if is_html:
-            html_part = MIMEText(message, 'html')
-            msg.attach(html_part)
-        else:
-            # If not HTML, use plain text only
-            msg.attach(MIMEText(message, 'plain'))
+    for attachment in attached_files:
+        attached_file = MIMEApplication(attachment['content'])
+        attached_file.add_header('Content-Disposition', 'attachment', filename=attachment['filename'])
+        msg.attach(attached_file)
 
-        for attachment in attached_files:
-            attached_file = MIMEApplication(attachment['content'])
-            attached_file.add_header('Content-Disposition', 'attachment', filename=attachment['filename'])
-            msg.attach(attached_file)
+    with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
+        try:
+            failed_recipients = server.sendmail(sender, recipients.split(','), msg.as_string())
+            success = not failed_recipients
+        except Exception as e:
+            failed_recipients = recipients.split(',')
+            success = False
 
-        with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
-            try:
-                failed_recipients = server.sendmail(sender, recipients.split(','), msg.as_string())
-                success = not failed_recipients
-            except Exception as e:
-                failed_recipients = recipients.split(',')
-                success = False
+    log_entry = {
+        'sender': sender,
+        'recipients': recipients,
+        'subject': subject,
+        'datetime_utc': datetime.utcnow(),
+        'success': success,
+        'failed_recipients': failed_recipients,
+    }
+    
+    # Create or get the subcollection for the current user
+    user_mail_logs_collection = mails_collection[f'user_{current_user.id}_logs']
 
-        print(success)
-        print(failed_recipients)
+    # Insert the log entry into the user's subcollection
+    user_mail_logs_collection.insert_one(log_entry)
 
-        log_entry = {
-            'sender': sender,
-            'recipients': recipients,
-            'subject': subject,
-            'datetime_utc': datetime.utcnow(),
-            'success': success,
-            'failed_recipients': failed_recipients,
-        }
-        
-        # Create or get the subcollection for the current user
-        user_mail_logs_collection = mails_collection[f'user_{current_user.id}_logs']
+    # Pass log data to the template
+    return render_template('send_result.html', log_entry=log_entry, success=success)
 
-        # Insert the log entry into the user's subcollection
-        user_mail_logs_collection.insert_one(log_entry)
-
-        # Pass log data to the template
-        return render_template('send_result.html', log_entry=log_entry, success=success)
-
-    except Exception as e:
-        return jsonify({'message': f'Error sending email: {str(e)}'}), 500
     
 
 @email_bp.route('/email/logs')

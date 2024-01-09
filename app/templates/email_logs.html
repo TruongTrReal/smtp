@@ -28,6 +28,7 @@
                         <td>{{ log_entry.subject }}</td>
                         <td>{{ log_entry.datetime_utc }}</td>
                         <td>{% if log_entry.success %}Success{% else %}Failure{% endif %}</td>
+                        <td>{{ log_entry.failed_recipients }}</td>
                     </tr>
                 {% endfor %}
             </tbody>
