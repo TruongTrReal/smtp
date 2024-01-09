@@ -20,9 +20,9 @@ $(document).ready(function() {
         });
         sendEmailButton.prop('disabled', !validEmails);
         if (!validEmails && recipientsValue !== '') {
-            recipientsFormatAlert.show();
+            $('#recipientsFormatAlert').show();
         } else {
-            recipientsFormatAlert.hide();
+            $('#recipientsFormatAlert').hide();
         }
     }
 
