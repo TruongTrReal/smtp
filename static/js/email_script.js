@@ -1,14 +1,14 @@
 // static/js/email_sript.js 
 $(document).ready(function() {
-
-    // Toggle the visibility of the message textareas based on "Send as HTML" checkbox
+    $('#htmlMessageBox').hide();
+    
     $('#htmlCheckbox').change(function() {
         if ($(this).is(':checked')) {
-            $('#textMessage').hide();
-            $('#htmlMessage').show();
+            $('#textMessageBox').hide();
+            $('#htmlMessageBox').show();
         } else {
-            $('#textMessage').show();
-            $('#htmlMessage').hide();
+            $('#textMessageBox').show();
+            $('#htmlMessageBox').hide();
         }
     });
 
