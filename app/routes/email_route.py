@@ -46,10 +46,7 @@ def send_email():
         msg['Subject'] = subject
 
         if is_html:
-            # If it's an HTML email, include both plain text and HTML versions
-            text_part = MIMEText(message, 'plain')
             html_part = MIMEText(message, 'html')
-            msg.attach(text_part)
             msg.attach(html_part)
         else:
             # If not HTML, use plain text only
