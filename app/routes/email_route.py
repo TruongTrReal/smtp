@@ -1,7 +1,7 @@
 # routes/email_route.py
 from flask import Blueprint, render_template, request, jsonify
 from flask_login import login_required, current_user
-from pymongo import MongoClient
+from pymongo import MongoClient, DESCENDING
 import smtplib
 from datetime import datetime
 from email.mime.text import MIMEText
@@ -95,12 +95,8 @@ def send_email():
 @email_bp.route('/email/logs')
 @login_required
 def email_logs():
-    # Replace this with the actual logic to fetch email logs from MongoDB
-    email_logs = mails_collection[f'user_{current_user.id}_logs'].find()
-
+    email_logs = mails_collection[f'user_{current_user.id}_logs'].find().sort("datetime_utc", DESCENDING)
     return render_template('email_logs.html', email_logs=email_logs)
-
-
 
 
 

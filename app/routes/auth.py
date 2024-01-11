@@ -76,21 +76,19 @@ def callback():
     if userinfo_response.json().get("email_verified"):
         unique_id = userinfo_response.json()["sub"]
         users_email = userinfo_response.json()["email"]
-        picture = userinfo_response.json()["picture"]
         users_name = userinfo_response.json()["given_name"]
     else:
         return "User email not available or not verified by Google.", 400
     
     random_pw = str(random.randint(0, 99999999999))
     hashed_password = generate_password_hash(random_pw, method='pbkdf2:sha256:600000')
-    otp = str(random.randint(100000, 999999))   
 
     user = User(
             user_id=unique_id, 
             username=users_name, 
             email=users_email, 
             password=hashed_password, 
-            verification_otp=otp,
+            verification_otp='email verified',
             email_verified=True,
         )
     
@@ -141,13 +139,15 @@ def register():
         mongo.db.users.insert_one(new_user.__dict__)
 
         flash('Registration successful! Please check your email for verification.', 'success')
-        return render_template('email_verify.html')
+        return redirect(url_for('auth.verify_email', user=new_user))
 
     return render_template('register.html')
 
 
 @auth_bp.route('/verify_email', methods=['GET','POST'])
 def verify_email():
+    user = request.args.get('user')
+
     if request.method == 'POST':
         # Get the OTP values from the form
         otp1 = request.form.get('otp1')
@@ -160,23 +160,26 @@ def verify_email():
         # Concatenate the OTP values to form the complete OTP
         entered_otp = f"{otp1}{otp2}{otp3}{otp4}{otp5}{otp6}"
 
-        user = mongo.db.users.find_one({'verification_otp': entered_otp})
+        otp_correct = mongo.db.users.find_one({'verification_otp': entered_otp})
 
-        if user:
+        if otp_correct:
             # Mark the user's email as verified
-            mongo.db.users.update_one({'verification_otp': entered_otp}, {'$set': {'email_verified': True}})
+            mongo.db.users.update_one({'verification_otp': 'email verified'}, {'$set': {'email_verified': True}})
         else:
             flash('Invalid verification token. Please check your email or request a new OTP.', 'danger')
 
-        return redirect(url_for('auth.login'))
-    
-    return render_template('email_verify.html')
+        login_user(user)       
+
+        return redirect(url_for('email.index')) 
+       
+    return redirect(url_for('auth.login'))
 
 
 @auth_bp.route('/resend_otp', methods=['GET'])
 def resend_otp():
     if request:
-        email = request.args.get('email')
+        user = request.args.get('user')
+        email = user['email']
         user = mongo.db.users.find_one({'email': email, 'email_verified': False})
 
         if user:
@@ -190,12 +193,11 @@ def resend_otp():
             send_otp_email("noreply@truonggpt.com", email, new_otp)
 
             flash('New OTP sent! Please check your email for verification.', 'success')
-            return render_template('email_verify.html')
+            return redirect(url_for('auth.verify_email', user=user))
         else:
             flash('Invalid email or email is already verified.', 'danger')
 
-    return render_template('email_verify.html')
-
+    return redirect(url_for('auth.login'))
 
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
@@ -217,15 +219,12 @@ def login():
                 email_verified=user['email_verified']
             )
 
-            login_user(user_obj)
-
-            print(login_user(user_obj))
-            
+            login_user(user_obj)            
             return redirect(url_for('email.index'))
         
         elif user and check_password_hash(user['password'][0], password) and user['email_verified']!=True:
             flash('You have not verify email yet. Lets verify!', 'danger')
-            return redirect(url_for('auth.resend_otp', email=email))
+            return redirect(url_for('auth.resend_otp', user=user_obj))
 
         else:
             flash('Login failed. Check your email and password.', 'danger')
