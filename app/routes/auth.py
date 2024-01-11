@@ -163,7 +163,6 @@ def verify_email():
         otp_correct = mongo.db.users.find_one({'verification_otp': entered_otp})
 
         if otp_correct:
-            # Mark the user's email as verified
             mongo.db.users.update_one({'verification_otp': 'email verified'}, {'$set': {'email_verified': True}})
         else:
             flash('Invalid verification token. Please check your email or request a new OTP.', 'danger')
@@ -172,7 +171,7 @@ def verify_email():
 
         return redirect(url_for('email.index')) 
        
-    return redirect(url_for('auth.login'))
+    return render_template('verify_email.html')
 
 
 @auth_bp.route('/resend_otp', methods=['GET'])
