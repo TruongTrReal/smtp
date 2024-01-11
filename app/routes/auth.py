@@ -146,31 +146,28 @@ def register():
 @auth_bp.route('/verify_email', methods=['GET','POST'])
 def verify_email():
     user_id = request.args.get('id')
-    if request.method == 'POST':
-        # Get the OTP values from the form
-        otp1 = request.form.get('otp1')
-        otp2 = request.form.get('otp2')
-        otp3 = request.form.get('otp3')
-        otp4 = request.form.get('otp4')
-        otp5 = request.form.get('otp5')
-        otp6 = request.form.get('otp6')
+    # Get the OTP values from the form
+    otp1 = request.form.get('otp1')
+    otp2 = request.form.get('otp2')
+    otp3 = request.form.get('otp3')
+    otp4 = request.form.get('otp4')
+    otp5 = request.form.get('otp5')
+    otp6 = request.form.get('otp6')
 
-        # Concatenate the OTP values to form the complete OTP
-        entered_otp = f"{otp1}{otp2}{otp3}{otp4}{otp5}{otp6}"
+    # Concatenate the OTP values to form the complete OTP
+    entered_otp = f"{otp1}{otp2}{otp3}{otp4}{otp5}{otp6}"
 
-        otp_correct = mongo.db.users.find_one({'id': user_id, 'verification_otp': entered_otp})
+    otp_correct = mongo.db.users.find_one({'id': user_id, 'verification_otp': entered_otp})
 
-        if otp_correct:
-            mongo.db.users.update_one({'verification_otp': 'email verified'}, {'$set': {'email_verified': True}})
-        else:
-            flash('Invalid verification token. Please check your email or request a new OTP.', 'danger')
+    if otp_correct:
+        mongo.db.users.update_one({'verification_otp': 'email verified'}, {'$set': {'email_verified': True}})
+    else:
+        flash('Invalid verification token. Please check your email or request a new OTP.', 'danger')
 
-        login_user(mongo.db.users.find({'id': user_id}))       
+    login_user(mongo.db.users.find({'id': user_id}))       
 
-        return redirect(url_for('email.index')) 
+    return redirect(url_for('email.index')) 
        
-    return render_template('verify_email.html')
-
 
 @auth_bp.route('/resend_otp', methods=['GET'])
 def resend_otp():
