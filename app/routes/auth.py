@@ -146,8 +146,17 @@ def register():
 @auth_bp.route('/verify_email', methods=['GET','POST'])
 def verify_email():
     user_id = request.args.get('id')
-    otp_values = [request.form.get(f'otp{i}') for i in range(1, 7)]
-    entered_otp = ''.join(otp_values)
+    # Get the OTP values from the form
+    otp1 = request.form.get('otp1')
+    otp2 = request.form.get('otp2')
+    otp3 = request.form.get('otp3')
+    otp4 = request.form.get('otp4')
+    otp5 = request.form.get('otp5')
+    otp6 = request.form.get('otp6')
+
+    # Concatenate the OTP values to form the complete OTP
+    entered_otp = f"{otp1}{otp2}{otp3}{otp4}{otp5}{otp6}"
+    
     user = mongo.db.users.find_one({'id': user_id, 'verification_otp': entered_otp})
 
     if user:
