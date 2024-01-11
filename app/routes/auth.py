@@ -143,7 +143,7 @@ def register():
     return render_template('register.html')
 
 
-@auth_bp.route('/verify_email', methods=['POST'])
+@auth_bp.route('/verify_email', methods=['GET','POST'])
 def verify_email():
     user_id = request.args.get('id')
     otp_values = [request.form.get(f'otp{i}') for i in range(1, 7)]
@@ -161,7 +161,7 @@ def verify_email():
     return redirect(url_for('email.index'))
        
 
-@auth_bp.route('/resend_otp', methods=['GET'])
+@auth_bp.route('/resend_otp', methods=['GET','POST'])
 def resend_otp():
     if request:
         user_id = request.args.get('id')
