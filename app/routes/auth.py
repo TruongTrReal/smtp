@@ -143,30 +143,22 @@ def register():
     return render_template('register.html')
 
 
-@auth_bp.route('/verify_email', methods=['GET','POST'])
+@auth_bp.route('/verify_email', methods=['POST'])
 def verify_email():
     user_id = request.args.get('id')
-    # Get the OTP values from the form
-    otp1 = request.form.get('otp1')
-    otp2 = request.form.get('otp2')
-    otp3 = request.form.get('otp3')
-    otp4 = request.form.get('otp4')
-    otp5 = request.form.get('otp5')
-    otp6 = request.form.get('otp6')
+    otp_values = [request.form.get(f'otp{i}') for i in range(1, 7)]
+    entered_otp = ''.join(otp_values)
+    user = mongo.db.users.find_one({'id': user_id, 'verification_otp': entered_otp})
 
-    # Concatenate the OTP values to form the complete OTP
-    entered_otp = f"{otp1}{otp2}{otp3}{otp4}{otp5}{otp6}"
+    if user:
+        mongo.db.users.update_one({'id': user_id}, {'$set': {'email_verified': True}})
+        flash('Email successfully verified.', 'success')
 
-    otp_correct = mongo.db.users.find_one({'id': user_id, 'verification_otp': entered_otp})
-
-    if otp_correct:
-        mongo.db.users.update_one({'verification_otp': 'email verified'}, {'$set': {'email_verified': True}})
+        login_user(User(user))
     else:
         flash('Invalid verification token. Please check your email or request a new OTP.', 'danger')
 
-    login_user(mongo.db.users.find({'id': user_id}))       
-
-    return redirect(url_for('email.index')) 
+    return redirect(url_for('email.index'))
        
 
 @auth_bp.route('/resend_otp', methods=['GET'])
@@ -216,7 +208,7 @@ def login():
         
         elif user and check_password_hash(user['password'][0], password) and user['email_verified']!=True:
             flash('You have not verify email yet. Lets verify!', 'danger')
-            return redirect(url_for('auth.resend_otp', user=user_obj))
+            return redirect(url_for('auth.resend_otp', id=user['id']))
 
         else:
             flash('Login failed. Check your email and password.', 'danger')
