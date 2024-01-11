@@ -1,6 +1,4 @@
-from flask_pymongo import PyMongo
 from flask_login import UserMixin
-from bson import ObjectId
 from app import mongo, login_manager
 
 @login_manager.user_loader

@@ -8,7 +8,6 @@ from app.models import User
 from flask_oauthlib.client import OAuth
 from flask_login import login_user, logout_user
 import uuid
-import google_auth_oauthlib.flow
 import random
 from .send_otp import send_otp_email
 from oauthlib.oauth2 import WebApplicationClient
@@ -139,15 +138,14 @@ def register():
         mongo.db.users.insert_one(new_user.__dict__)
 
         flash('Registration successful! Please check your email for verification.', 'success')
-        return redirect(url_for('auth.verify_email', user=new_user))
+        return redirect(url_for('auth.verify_email'))
 
     return render_template('register.html')
 
 
 @auth_bp.route('/verify_email', methods=['GET','POST'])
 def verify_email():
-    user = request.args.get('user')
-
+    user_id = request.args.get('id')
     if request.method == 'POST':
         # Get the OTP values from the form
         otp1 = request.form.get('otp1')
@@ -160,14 +158,14 @@ def verify_email():
         # Concatenate the OTP values to form the complete OTP
         entered_otp = f"{otp1}{otp2}{otp3}{otp4}{otp5}{otp6}"
 
-        otp_correct = mongo.db.users.find_one({'verification_otp': entered_otp})
+        otp_correct = mongo.db.users.find_one({'id': user_id, 'verification_otp': entered_otp})
 
         if otp_correct:
             mongo.db.users.update_one({'verification_otp': 'email verified'}, {'$set': {'email_verified': True}})
         else:
             flash('Invalid verification token. Please check your email or request a new OTP.', 'danger')
 
-        login_user(user)       
+        login_user(mongo.db.users.find({'id': user_id}))       
 
         return redirect(url_for('email.index')) 
        
@@ -177,22 +175,20 @@ def verify_email():
 @auth_bp.route('/resend_otp', methods=['GET'])
 def resend_otp():
     if request:
-        user = request.args.get('user')
-        email = user['email']
-        user = mongo.db.users.find_one({'email': email, 'email_verified': False})
-
-        if user:
+        user_id = request.args.get('id')
+        user_unverified = mongo.db.users.find_one({'id': user_id, 'email_verified': False})
+        if user_unverified:
             # Generate a new OTP
             new_otp = str(random.randint(100000, 999999))
-
+            email = user_unverified['email']
             # Update the user's verification OTP in the database
-            mongo.db.users.update_one({'email': email}, {'$set': {'verification_otp': new_otp}})
+            mongo.db.users.update_one({'id': user_id}, {'$set': {'verification_otp': new_otp}})
 
             # Resend verification email with the new OTP
             send_otp_email("noreply@truonggpt.com", email, new_otp)
 
             flash('New OTP sent! Please check your email for verification.', 'success')
-            return redirect(url_for('auth.verify_email', user=user))
+            return redirect(url_for('auth.verify_email', id=user_id))
         else:
             flash('Invalid email or email is already verified.', 'danger')
 
