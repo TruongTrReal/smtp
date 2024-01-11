@@ -24,7 +24,7 @@
                 <p class="text-center">A 6-digit verification code has been sent to your email. Please enter the code below:</p>
                 
                 <!-- Form for entering the OTP -->
-                <form method="POST" action="{{ url_for('auth.verify_email') }}" id="otpForm">
+                <form method="POST" action="{{ url_for('auth.verify_email', id=id) }}" id="otpForm">
                     <div class="form-group text-center">
                         <input type="text" name="otp1" class="otp-input" maxlength="1" required autofocus>
                         <input type="text" name="otp2" class="otp-input" maxlength="1" required>
@@ -45,7 +45,7 @@
                 {% endwith %}
 
                 <!-- Resend OTP link (optional) -->
-                <p class="mt-3 text-center"><a href="{{ url_for('auth.resend_otp', email=email) }}">Resend OTP</a></p>
+                <p class="mt-3 text-center"><a href="{{ url_for('auth.resend_otp', id=id) }}">Resend OTP</a></p>
             </div>
         </div>
     </div>

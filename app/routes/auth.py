@@ -138,36 +138,37 @@ def register():
         mongo.db.users.insert_one(new_user.__dict__)
 
         flash('Registration successful! Please check your email for verification.', 'success')
-        return redirect(url_for('auth.verify_email', id=user_id))
+        return render_template('email_verify.html')
 
     return render_template('register.html')
 
 
 @auth_bp.route('/verify_email', methods=['GET','POST'])
 def verify_email():
-    user_id = request.args.get('id')
-    # Get the OTP values from the form
-    otp1 = request.form.get('otp1')
-    otp2 = request.form.get('otp2')
-    otp3 = request.form.get('otp3')
-    otp4 = request.form.get('otp4')
-    otp5 = request.form.get('otp5')
-    otp6 = request.form.get('otp6')
+    if request.method == 'POST':
+        user_id = request.args.get('id')
+        # Get the OTP values from the form
+        otp1 = request.form.get('otp1')
+        otp2 = request.form.get('otp2')
+        otp3 = request.form.get('otp3')
+        otp4 = request.form.get('otp4')
+        otp5 = request.form.get('otp5')
+        otp6 = request.form.get('otp6')
 
-    # Concatenate the OTP values to form the complete OTP
-    entered_otp = f"{otp1}{otp2}{otp3}{otp4}{otp5}{otp6}"
-    
-    user = mongo.db.users.find_one({'id': user_id, 'verification_otp': entered_otp})
+        # Concatenate the OTP values to form the complete OTP
+        entered_otp = f"{otp1}{otp2}{otp3}{otp4}{otp5}{otp6}"
 
-    if user:
-        mongo.db.users.update_one({'id': user_id}, {'$set': {'email_verified': True}})
-        flash('Email successfully verified.', 'success')
+        user = mongo.db.users.find_one({'id': user_id, 'verification_otp': entered_otp})
 
-        login_user(User(user))
-    else:
-        flash('Invalid verification token. Please check your email or request a new OTP.', 'danger')
+        if user:
+            mongo.db.users.update_one({'id': user_id}, {'$set': {'email_verified': True}})
+            flash('Email successfully verified.', 'success')
 
-    return redirect(url_for('email.index'))
+            login_user(User(user))
+        else:
+            flash('Invalid verification token. Please check your email or request a new OTP.', 'danger')
+
+    return redirect(url_for('auth.login'))
        
 
 @auth_bp.route('/resend_otp', methods=['GET','POST'])
@@ -186,7 +187,7 @@ def resend_otp():
             send_otp_email("noreply@truonggpt.com", email, new_otp)
 
             flash('New OTP sent! Please check your email for verification.', 'success')
-            return redirect(url_for('auth.verify_email', id=user_id))
+            return render_template('email_verify.html')
         else:
             flash('Invalid email or email is already verified.', 'danger')
 
