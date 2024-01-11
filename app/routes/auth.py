@@ -191,7 +191,7 @@ def resend_otp():
         else:
             flash('Invalid email or email is already verified.', 'danger')
 
-    return redirect(url_for('auth.login'))
+    return redirect(url_for('email_verify.html'))
 
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
