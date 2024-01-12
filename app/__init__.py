@@ -4,7 +4,7 @@ from flask_pymongo import PyMongo
 from flask_login import LoginManager
 from flask_mail import Mail
 
-app = Flask(__name__)
+app = Flask(__name__, static_url_path='/static', static_folder='static')
 mongo = PyMongo()
 login_manager = LoginManager(app)
 mail = Mail()
