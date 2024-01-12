@@ -58,7 +58,7 @@
                         {% else %}
                             <label for="sender">Sender's Email:</label>
                             <div class="input-group">
-                                <input type="text" class="form-control" pattern="[a-zA-Z0-9]+"  id="sender" required>
+                                <input type="text" class="form-control" pattern="[a-zA-Z0-9]+"  id="sender" required title="Please enter lower case only, a-z 0-9, don't start with a number and no special characters.">
                                 <div class="input-group-addon">@truonggpt.com</div>
                             </div>
                         {% endif %}
@@ -115,7 +115,7 @@
     <script>
 
         $(document).ready(function() {
-            
+
             $('#sender').val('{{ current_user.username }}');
             $('#sender').css('max-width', '300px');
             $('#htmlMessageBox').hide();
