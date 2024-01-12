@@ -4,7 +4,7 @@ from email.mime.multipart import MIMEMultipart
 
 def send_otp_email(from_email, to_email, otp_code):
     SMTP_SERVER = 'localhost'
-    SMTP_PORT = 25
+    SMTP_PORT = 465
 
     subject = 'TruongGPT OTP'
     body = f"""
