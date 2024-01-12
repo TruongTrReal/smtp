@@ -1,11 +1,8 @@
 # app/routes/authentication.py 
-import os
 from flask import Blueprint, render_template, redirect, url_for, flash, session, request
-from flask_mail import Message, Mail
 from werkzeug.security import generate_password_hash, check_password_hash
-from app import mongo, mail
+from app import mongo
 from app.models import User
-from flask_oauthlib.client import OAuth
 from flask_login import login_user, logout_user, LoginManager
 import uuid
 import random
