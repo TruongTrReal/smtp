@@ -104,7 +104,6 @@ def callback():
     login_user(user)
     return redirect(url_for("email.index"))
 
-
 @auth_bp.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
@@ -159,12 +158,12 @@ def verify_email():
         # Concatenate the OTP values to form the complete OTP
         entered_otp = f"{otp1}{otp2}{otp3}{otp4}{otp5}{otp6}"
 
-        user = mongo.db.users.find_one({'verification_otp': entered_otp})
+        user = mongo.db.users.find_one({'id': user_id, 'verification_otp': entered_otp})
 
         if user:
+            login_user(user)
             mongo.db.users.update_one({'id': user_id}, {'$set': {'email_verified': True}})
             flash('Email successfully verified.', 'success')
-            login_user(User(user))
             return redirect(url_for('email.index'))
         else:
             flash('Invalid verification token. Please check your email or request a new OTP.', 'danger')
