@@ -91,6 +91,8 @@ def callback():
             email_verified=True,
         )
     
+    session['user_id'] = unique_id
+    
     existing_user = mongo.db.users.find_one({'email': users_email})
 
     if existing_user:
@@ -137,7 +139,7 @@ def register():
         # Save user to MongoDB
         mongo.db.users.insert_one(new_user.__dict__)
         flash('Registration successful! Please check your email for verification.', 'success')
-        return render_template('email_verify.html', id=user_id)
+        return render_template('email_verify.html')
 
     return render_template('register.html')
 
@@ -212,12 +214,13 @@ def login():
                 email_verified=user['email_verified']
             )
 
+            session['user_id'] = user['id']
             login_user(user_obj)            
             return redirect(url_for('email.index'))
-        
+            
         elif user and check_password_hash(user['password'][0], password) and user['email_verified']!=True:
             flash('You have not verify email yet. Lets verify!', 'danger')
-            return redirect(url_for('auth.resend_otp', id=user['id']))
+            return redirect(url_for('auth.resend_otp'))
 
         else:
             flash('Login failed. Check your email and password.', 'danger')
