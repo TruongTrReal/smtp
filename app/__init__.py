@@ -7,13 +7,15 @@ from flask_mail import Mail
 app = Flask(__name__, static_url_path='/static', static_folder='static')
 mongo = PyMongo()
 login_manager = LoginManager(app)
+
 mail = Mail()
 
 def create_app():
 
     # Initialize Flask-Login
     login_manager.init_app(app)
-
+    login_manager.login_view = 'auth.login'
+    
     # Set a secret key for session security
     app.config['SECRET_KEY'] = 'your_secret_key_here'  # Replace with a strong, random secret key
 
