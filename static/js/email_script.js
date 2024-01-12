@@ -1,9 +1,28 @@
 // static/js/email_sript.js 
 $(document).ready(function() {
+    
+    $('#sender').val('{{ current_user.username }}');
+    $('#sender').css('max-width', '300px');
     $('#htmlMessageBox').hide();
     $('#htmlMessage').prop('required', false);
     $('#recipientsFormatAlert').hide();
     
+    $('#sender').on('input', function() {
+        var inputValue = $(this).val();
+
+        // Remove spaces
+        inputValue = inputValue.replace(/\s+/g, '');
+
+        // Convert to lowercase
+        inputValue = inputValue.toLowerCase();
+
+        // Remove non-alphanumeric characters from the beginning of the string
+        inputValue = inputValue.replace(/^[^a-z0-9]+/, '');
+
+        // Update the input value
+        $(this).val(inputValue.slice(0, 20));  // Limit the length if needed
+    });
+
     var recipientsInput = $('#recipients');
     var sendEmailButton = $('#sendEmailButton');
 
