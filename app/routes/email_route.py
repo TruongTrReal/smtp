@@ -1,5 +1,5 @@
 # routes/email_route.py
-from flask import Blueprint, render_template, request, flash
+from flask import Blueprint, render_template, request, flash, redirect, url_for
 from flask_login import login_required, current_user, LoginManager
 from pymongo import MongoClient, DESCENDING
 import smtplib
@@ -19,10 +19,11 @@ client = MongoClient(MONGO_URI)
 db = client[DB_NAME]
 mails_collection = db[COLLECTION_NAME]
 
-@LoginManager.unauthorized_handler(self=LoginManager, callback='auth.login')
+@LoginManager.unauthorized_handler(self=LoginManager, callback=redirect(url_for('auth.login')))
 def unauthorized():
     flash('You need to login or register first.', 'danger')
     return render_template('login.html')
+
 
 @email_bp.route('/email')
 @login_required
