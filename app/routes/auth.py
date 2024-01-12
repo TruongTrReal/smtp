@@ -138,7 +138,7 @@ def register():
         mongo.db.users.insert_one(new_user.__dict__)
 
         flash('Registration successful! Please check your email for verification.', 'success')
-        return render_template('email_verify.html')
+        return render_template('email_verify.html', id=user_id)
 
     return render_template('register.html')
 
