@@ -103,7 +103,6 @@ def callback():
     return redirect(url_for("email.index"))
 
 
-
 @auth_bp.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
@@ -131,12 +130,12 @@ def register():
             email_verified=False,
         )
 
+        session['user_id'] = user_id
         # Send verification email
         send_otp_email("noreply@truonggpt.com", email, otp)
 
         # Save user to MongoDB
         mongo.db.users.insert_one(new_user.__dict__)
-
         flash('Registration successful! Please check your email for verification.', 'success')
         return render_template('email_verify.html', id=user_id)
 
@@ -146,7 +145,7 @@ def register():
 @auth_bp.route('/verify_email', methods=['GET','POST'])
 def verify_email():
     if request.method == 'POST':
-        user_id = request.args.get('id')
+        user_id = session['user_id']
         # Get the OTP values from the form
         otp1 = request.form.get('otp1')
         otp2 = request.form.get('otp2')
@@ -174,7 +173,7 @@ def verify_email():
 @auth_bp.route('/resend_otp', methods=['GET','POST'])
 def resend_otp():
     if request:
-        user_id = request.args.get('id')
+        user_id = session['user_id']
         user_unverified = mongo.db.users.find_one({'id': user_id, 'email_verified': False})
         if user_unverified:
             # Generate a new OTP
