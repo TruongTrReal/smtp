@@ -9,6 +9,8 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.application import MIMEApplication
 
 email_bp = Blueprint('email', __name__)
+login_manager = LoginManager()
+login_manager.login_view = "users.login"
 
 # MongoDB configuration
 MONGO_URI = 'mongodb://localhost:27017/'
@@ -19,10 +21,11 @@ client = MongoClient(MONGO_URI)
 db = client[DB_NAME]
 mails_collection = db[COLLECTION_NAME]
 
-@LoginManager.unauthorized_handler(self=LoginManager, callback=redirect(url_for('auth.login')))
+@login_manager.unauthorized_handler
 def unauthorized():
+    # do stuff
     flash('You need to login or register first.', 'danger')
-    return render_template('login.html')
+    return redirect(url_for('auth.login'))
 
 
 @email_bp.route('/email')

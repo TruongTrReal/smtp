@@ -6,7 +6,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from app import mongo, mail
 from app.models import User
 from flask_oauthlib.client import OAuth
-from flask_login import login_user, logout_user
+from flask_login import login_user, logout_user, LoginManager
 import uuid
 import random
 from .send_otp import send_otp_email
@@ -15,6 +15,7 @@ import requests
 import json
 
 auth_bp = Blueprint('auth', __name__)
+login_manager = LoginManager()
 
 GOOGLE_CLIENT_ID = "294737311113-vi4mnctcscovl0tgvg6eesgo16v56i8p.apps.googleusercontent.com"
 GOOGLE_CLIENT_SECRET = "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"
@@ -27,6 +28,14 @@ client = WebApplicationClient(GOOGLE_CLIENT_ID)
 
 def get_google_provider_cfg():
     return requests.get(GOOGLE_DISCOVERY_URL).json()
+
+
+@login_manager.unauthorized_handler
+def unauthorized():
+    # do stuff
+    flash('You need to login or register first.', 'danger')
+    return redirect(url_for('auth.login'))
+
 
 @auth_bp.route('/authorize')
 def authorize():
