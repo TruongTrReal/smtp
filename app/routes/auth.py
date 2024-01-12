@@ -163,8 +163,8 @@ def verify_email():
         if user:
             mongo.db.users.update_one({'id': user_id}, {'$set': {'email_verified': True}})
             flash('Email successfully verified.', 'success')
-
             login_user(User(user))
+            return redirect(url_for('email.index'))
         else:
             flash('Invalid verification token. Please check your email or request a new OTP.', 'danger')
 
