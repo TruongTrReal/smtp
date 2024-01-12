@@ -52,18 +52,21 @@
                         {% if current_user.is_authenticated %}
                             <label for="sender">Sender's Email:</label>
                             <div class="input-group">
-                                <input type="text" class="form-control" pattern="[a-z0-9]+" id="sender" value="{{ current_user.username }}" required>
+                                <input type="text" class="form-control" 
+                                    pattern="[a-z0-9]+" id="sender" 
+                                    value="{{ current_user.username }}" required>
                                 <div class="input-group-addon"> @truonggpt.com</div>
                             </div>
+                            <div id="error-message" style="color: red;"></div>
                         {% else %}
                             <label for="sender">Sender's Email:</label>
                             <div class="input-group">
-                                <input type="text" class="form-control" oninput="this.value = this.value.toLowerCase()"
-                                    pattern="[a-zA-Z0-9]+"  id="sender" style="text-transform: lowercase;"
-                                    required title="Please enter lower case only, a-z 0-9, don't start with a number and no special characters.">
+                                <input type="text" class="form-control"
+                                    pattern="[a-z0-9]+"  id="sender"
+                                    required>
                                 <div class="input-group-addon">@truonggpt.com</div>
-                                <small class="form-text text-muted">sender name should not contain special characters. Only number and letters from alphabet.</small>
                             </div>
+                            <div id="error-message" style="color: red;"></div>
                         {% endif %}
                     </div>
                     <div class="form-group">
@@ -124,6 +127,27 @@
             $('#htmlMessageBox').hide();
             $('#htmlMessage').prop('required', false);
             $('#recipientsFormatAlert').hide();
+
+            $('#sender').on('input', function() {
+            // Get the input value
+            var inputValue = $(this).val();
+
+            // Perform validation
+            var isValid = /^[a-zA-Z][a-zA-Z0-9]*$/.test(inputValue);
+
+            // Display error message if validation fails
+            if (!isValid) {
+                $('#error-message').text('Invalid input. Name must start with a letter, contain only letters and numbers, and have no spaces or special characters.');
+                } else {
+                $('#error-message').text('');
+                }
+
+                // Convert the input to lowercase and remove spaces
+                var modifiedValue = inputValue.toLowerCase().replace(/\s/g, '');
+
+                // Update the input value
+                $(this).val(modifiedValue);
+            });
             
             var recipientsInput = $('#recipients');
             var sendEmailButton = $('#sendEmailButton');
