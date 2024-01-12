@@ -54,7 +54,7 @@ def send_email():
 
     # Send email
     SMTP_SERVER = 'localhost'
-    SMTP_PORT = 465
+    SMTP_PORT = 25
 
     msg = MIMEMultipart()
     msg['From'] = sender
