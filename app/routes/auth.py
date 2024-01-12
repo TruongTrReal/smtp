@@ -148,7 +148,6 @@ def register():
 
     return render_template('register.html')
 
-
 @auth_bp.route('/verify_email', methods=['GET','POST'])
 def verify_email():
     if request.method == 'POST':
@@ -185,7 +184,6 @@ def verify_email():
 
     return redirect(url_for('auth.login'))
        
-
 @auth_bp.route('/resend_otp', methods=['GET','POST'])
 def resend_otp():
     user_id = session['user_id']
@@ -204,8 +202,6 @@ def resend_otp():
         return render_template('email_verify.html')
     else:
         flash('Invalid email or email is already verified.', 'danger')
-
-
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
@@ -238,7 +234,6 @@ def login():
             flash('Login failed. Check your email and password.', 'danger')
 
     return render_template('login.html')
-
 
 @auth_bp.route('/logout', methods=['GET', 'POST'])
 def logout():
