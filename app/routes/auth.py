@@ -158,7 +158,7 @@ def verify_email():
         # Concatenate the OTP values to form the complete OTP
         entered_otp = f"{otp1}{otp2}{otp3}{otp4}{otp5}{otp6}"
 
-        user = mongo.db.users.find_one({'id': user_id, 'verification_otp': entered_otp})
+        user = mongo.db.users.find_one({'verification_otp': entered_otp})
 
         if user:
             mongo.db.users.update_one({'id': user_id}, {'$set': {'email_verified': True}})
