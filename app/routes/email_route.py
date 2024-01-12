@@ -74,10 +74,12 @@ def send_email():
         msg.attach(attached_file)
 
     with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
+        server.starttls()
         try:
             failed_recipients = server.sendmail(sender, recipients.split(','), msg.as_string())
             success = not failed_recipients
         except Exception as e:
+            print(f"Error sending email: {e}")
             failed_recipients = recipients.split(',')
             success = False
 

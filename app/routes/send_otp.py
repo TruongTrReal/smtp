@@ -28,6 +28,7 @@ def send_otp_email(from_email, to_email, otp_code):
 
     try:
         with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
+            server.starttls()
             print('from_addr=',from_email,' to_addrs=', to_email, 'msg=', msg.as_string())
             server.sendmail(from_addr=from_email, to_addrs=to_email, msg=msg.as_string())
         print("OTP email sent successfully.")
