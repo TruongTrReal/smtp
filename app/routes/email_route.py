@@ -19,7 +19,7 @@ client = MongoClient(MONGO_URI)
 db = client[DB_NAME]
 mails_collection = db[COLLECTION_NAME]
 
-@login_manager.unauthorized_handler
+@login_manager.unauthorized
 def unauthorized():
     flash('You need to login or register first.', 'danger')
     return render_template('login.html')
