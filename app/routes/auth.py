@@ -158,10 +158,19 @@ def verify_email():
         # Concatenate the OTP values to form the complete OTP
         entered_otp = f"{otp1}{otp2}{otp3}{otp4}{otp5}{otp6}"
 
-        user = mongo.db.users.find_one({'id': user_id, 'verification_otp': entered_otp})
+        user_data = mongo.db.users.find_one({'id': user_id, 'verification_otp': entered_otp})
 
-        if user:
-            login_user(user)
+        if user_data:
+            # Create an instance of the User class
+            user_instance = User(
+                user_id=user_data['id'],
+                username=user_data['username'],
+                email=user_data['email'],
+                password=user_data['password'],
+                verification_otp=user_data['verification_otp'],
+                email_verified=user_data['email_verified']
+            )
+            login_user(user_instance)
             mongo.db.users.update_one({'id': user_id}, {'$set': {'email_verified': True}})
             flash('Email successfully verified.', 'success')
             return redirect(url_for('email.index'))
