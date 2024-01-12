@@ -174,25 +174,23 @@ def verify_email():
 
 @auth_bp.route('/resend_otp', methods=['GET','POST'])
 def resend_otp():
-    if request:
-        user_id = session['user_id']
-        user_unverified = mongo.db.users.find_one({'id': user_id, 'email_verified': False})
-        if user_unverified:
-            # Generate a new OTP
-            new_otp = str(random.randint(100000, 999999))
-            email = user_unverified['email']
-            # Update the user's verification OTP in the database
-            mongo.db.users.update_one({'id': user_id}, {'$set': {'verification_otp': new_otp}})
+    user_id = session['user_id']
+    user_unverified = mongo.db.users.find_one({'id': user_id, 'email_verified': False})
+    if user_unverified:
+        # Generate a new OTP
+        new_otp = str(random.randint(100000, 999999))
+        email = user_unverified['email']
+        # Update the user's verification OTP in the database
+        mongo.db.users.update_one({'id': user_id}, {'$set': {'verification_otp': new_otp}})
 
-            # Resend verification email with the new OTP
-            send_otp_email("noreply@truonggpt.com", email, new_otp)
+        # Resend verification email with the new OTP
+        send_otp_email("noreply@truonggpt.com", email, new_otp)
 
-            flash('New OTP sent! Please check your email for verification.', 'success')
-            return render_template('email_verify.html')
-        else:
-            flash('Invalid email or email is already verified.', 'danger')
+        flash('New OTP sent! Please check your email for verification.', 'success')
+        return render_template('email_verify.html')
+    else:
+        flash('Invalid email or email is already verified.', 'danger')
 
-    return redirect(url_for('email_verify.html'))
 
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
