@@ -34,7 +34,7 @@ def index():
     return render_template('email.html', username=current_user.username, email=current_user.email)
 
 
-@email_bp.route('/email/send', methods=['GET','POST'])
+@email_bp.route('/email/send', methods=['POST'])
 @login_required
 def send_email():
     sender = request.form['sender']
@@ -62,11 +62,9 @@ def send_email():
     msg['Subject'] = subject
 
     if is_html:
-        html_part = MIMEText(message, 'html')
-        msg.attach(html_part)
+        msg.attach(MIMEText(message, 'html', _charset='utf-8'))
     else:
-        # If not HTML, use plain text only
-        msg.attach(MIMEText(message, 'plain'))
+        msg.attach(MIMEText(message, 'plain', _charset='utf-8'))
 
     for attachment in attached_files:
         attached_file = MIMEApplication(attachment['content'])
@@ -100,7 +98,6 @@ def send_email():
 
     # Pass log data to the template
     return render_template('send_result.html', log_entry=log_entry, success=success)
-
     
 
 @email_bp.route('/email/logs')
