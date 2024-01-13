@@ -62,9 +62,9 @@ def send_email():
     msg['Subject'] = subject
 
     if is_html:
-        msg.attach(MIMEText(message, 'html', 'utf-8'))
+        msg.attach(MIMEText(_text=message, _subtype='html', _charset='utf-8'))
     else:
-        msg.attach(MIMEText(message, 'plain', 'utf-8'))
+        msg.attach(MIMEText(_text=message, _subtype='plain', _charset='utf-8'))
 
     for attachment in attached_files:
         attached_file = MIMEApplication(attachment['content'])
