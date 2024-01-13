@@ -40,7 +40,7 @@ def send_email():
     sender = request.form['sender']
     recipients = request.form['recipients']
     subject = request.form['subject']
-    message = request.form['message'].encode("utf-8")
+    message = request.form['message']
     is_html = request.form.get('isHtml', 'false').lower() == 'true'
 
     # Handling attachments
@@ -62,9 +62,9 @@ def send_email():
     msg['Subject'] = subject
 
     if is_html:
-        msg.attach(MIMEText(message, 'html'))
+        msg.attach(MIMEText(message, 'html').encode("utf-8"))
     else:
-        msg.attach(MIMEText(message, 'plain'))
+        msg.attach(MIMEText(message, 'plain').encode("utf-8"))
 
     for attachment in attached_files:
         attached_file = MIMEApplication(attachment['content'])
